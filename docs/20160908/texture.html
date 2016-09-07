@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+  <title>texture</title>
+  <script type="text/javascript" src="./js/libs/three.min.js"></script>
+  <script type="text/javascript" src="./js/libs/OBJLoader.js"></script>
+
+
+  <script type="text/javascript" src="./js/libs/jquery-3.1.0.min.js"></script>
+  <script type="text/javascript" src="./js/libs/ShaderLoader.min.js"></script>
+  <script type="text/javascript" src="./js/libs/OrbitControls.js"></script>
+  <script type="text/javascript" src="./js/libs/FlyControls.js"></script>
+  <script type="text/javascript" src="./js/libs/stats.js"></script>
+  <script type="text/javascript" src="./js/libs/dat.gui.js"></script>
+<style>
+body {
+  /* set margin to 0 and overflow to hidden, to go fullscreen */
+  margin: 0;
+  overflow: hidden;
+}
+</style>
+</head>
+<body>
+
+  <div id="Stats-output">
+</div>
+<!-- Div which will hold the Output -->
+<div id="webgl-output">
+</div>
+
+<!-- Javascript code that runs our Three.js examples -->
+<script type="text/javascript">
+
+class Sample {
+
+  constructor (opts = {}) {
+
+    this.width = window.innerWidth;
+    this.height = window.innerHeight;
+    this.output = opts.output || document.createElement('div');
+
+    this.init();
+  }
+
+  init () {
+    { // renderer
+      this.renderer = new THREE.WebGLRenderer({ antialias: true });
+      this.renderer.setClearColor( 0x222222 ); // 背景色
+      this.renderer.setPixelRatio(window.devicePixelRatio || 1);
+      this.renderer.setSize( this.width, this.height );
+      this.output.appendChild( this.renderer.domElement );
+    }
+    { // scene
+      this.scene = new THREE.Scene();
+    }
+    { // lights
+      this.light = new THREE.DirectionalLight(0xffffcc, 1);
+      this.light.position.set(0,100,30);
+      this.scene.add(this.light);
+      const ambientLight = new THREE.AmbientLight(0xffaa55);
+      this.scene.add(ambientLight);
+    }
+    { // camera
+      const perscamera = new THREE.PerspectiveCamera( 45, this.width / this.height, 1, 10000 ); // fov(視野角),aspect,near,far
+      const orthocamera = new THREE.OrthographicCamera( this.width / -2, this.width / 2, this.height / 2, this.height / -2, 1, 10000 );
+      this.camera = perscamera;
+      this.camera.position.set( 20, 20, 20 );
+      this.camera.lookAt( this.scene.position );
+    }
+    { // helper
+      const gridHelper = new THREE.GridHelper(200,50); // size, step
+      this.scene.add(gridHelper);
+      const axisHelper = new THREE.AxisHelper(200,50);
+      this.scene.add(axisHelper);
+      const lightHelper = new THREE.DirectionalLightHelper(this.light,20);
+      this.scene.add(lightHelper);
+    }
+    { // controls
+      this.controls = new THREE.OrbitControls(this.camera);
+      this.controls.autoRotate = true;
+    }
+    { // cube
+      const geom = new THREE.SphereGeometry(5,20,20);
+      const imageFile = "lawn.jpg";
+      const sphere = this.createMesh(geom, imageFile);
+      this.scene.add(sphere);
+    }
+
+    this.render();
+    // メソッドをそのまま渡すとうまくいかないので無名関数で囲う
+    window.addEventListener('resize', () => {
+        this.onResize();
+    }, false);
+
+  }
+
+  createMesh (geom, imageFile) {
+    const ROOT = './img/';
+    const textureLoader = new THREE.TextureLoader();
+    const texture = textureLoader.load(ROOT + imageFile);
+    const mat = new THREE.MeshPhongMaterial();
+    mat.map = texture;
+
+    const mesh = new THREE.Mesh(geom, mat);
+    return mesh;
+  }
+
+  render () {
+    requestAnimationFrame( () => {
+      this.render();
+    });
+    this.controls.update();
+    this.renderer.render( this.scene, this.camera );
+  }
+
+  onResize () {
+    this.camera.aspect = window.innerWidth / window.innerHeight;
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize( window.innerWidth, window.innerHeight );
+  }
+
+}
+
+
+(() => {
+
+  const sample = new Sample({
+    output: document.getElementById('webgl-output')
+  });
+
+})();
+
+
+
+
+</script>
+</body>
+</html>
