@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<title>お絵かきアプリ</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/3.18.1/build/cssreset/cssreset-min.css">
+<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+<style>
+canvas{
+	border: 1px solid #ccc;
+	margin: 10px auto;
+	display: block;
+	position: relative;
+}
+#container{
+	margin: 0 auto;
+	width: 320px;
+}
+ul{
+	font-size: 0;
+}
+li{
+	display: inline-block;
+}
+.btn, input[type="color"]{
+	width: 44px;
+	height: 44px;
+	list-style: none;
+	text-align: center;
+	vertical-align: top;
+	line-height: 44px;
+	font-size: 18px;
+	font-weight: bold;
+	border: 1px solid #ccc;
+	margin: 5px 0 5px 10px;
+}
+
+.btn-black{background-color:black;}
+.btn-red{background-color:red;}
+.btn-green{background-color:green;}
+.btn-blue{background-color:blue;}
+</style>
+</head>
+<body>
+<canvas style="background: #f3f3f3" id="canvas"></canvas>
+<div id="container">
+	<ul>
+		<li><input id="btn-color" type="color"></li>
+		<!-- <li class="btn btn-color btn-black" data-color="#000"></li>
+		<li class="btn btn-color btn-red" data-color="#f00"></li>
+		<li class="btn btn-color btn-green" data-color="#0f0"></li>
+		<li class="btn btn-color btn-blue" data-color="#00f"></li> -->
+		<li id="btn-eraser" class="btn btn-color"><i class="fa fa-eraser" aria-hidden="true"></i></li>
+	</ul>
+	<ul>
+		<li class="btn btn-size" data-size="1">1</li>
+		<li class="btn btn-size" data-size="5">5</li>
+		<li class="btn btn-size" data-size="10">10</li>
+	</ul>
+	<ul>
+		<li class="btn btn-emoji" data-emoji="">️</li>
+		<li class="btn btn-emoji" data-emoji="⭐️">⭐️</li>
+		<li class="btn btn-emoji" data-emoji="🍀">🍀</li>
+		<li class="btn btn-emoji" data-emoji="😊">😊</li>
+	</ul>
+</div>
+
+<script src="http://code.jquery.com/jquery-2.2.0.min.js"></script>
+<script type="text/javascript" src="js/draw.js"></script>
+</body>
+</html>

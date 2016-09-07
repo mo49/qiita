@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>when()</title>
+</head>
+<body>
+
+
+<script src="http://code.jquery.com/jquery-2.2.0.min.js"></script>
+<script>
+$(document).ready(function(){
+
+
+  let promises = [];
+
+  promises.push( $.get('ajax1.php') );
+  promises.push( $.get('ajax2.php') );
+  promises.push( $.get('ajax3.php') );
+
+  $.when.apply(null, promises).done( (...arg) => {
+    for (val of arg) {
+      $(document.body).append('<div>'+val+'</div>');
+    }
+  });
+
+
+});
+
+
+
+
+</script>
+
+</body>
+</html>

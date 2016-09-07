@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Ajax通信 JSONから取得</title>
+</head>
+<body>
+
+<h1 id="ajax_status">Ajax通信中...</h1>
+
+
+<script src="http://code.jquery.com/jquery-2.2.0.min.js"></script>
+<script>
+$(document).ready(function(){
+
+    //AJAX通信(ver1.8...)
+	var request = $.ajax({
+		type: 'POST',        //GET,POST
+	    data:{             //Dataプロパティはデータを送信（渡す）役目
+	        id: 1,
+	        mode: 'hoge',
+	        type: 'entry',
+	        sleep: 0       //Timeoutテスト用
+  		},
+  		url: "./method_json.php",
+  		async:true,          //非同期=true・同期=false
+  		cache:false,         //初期値はtrueでキャッシュする状態
+  		dataType: 'json',    //text, html, xml, json, jsonp, script
+  		timeout: 3000
+  });
+
+	request.done(function(data, textStatus) {
+		var len = data.length;
+	    for(var i=0; i<len; i++){
+	       $("body").append('<p>'+'id : ' + data[i].id + '<br>' + 'mode : ' + data[i].mode+ '<br>' + 'type : ' + data[i].type + '<br>' + 'date : ' + data[i].date +'</p>');
+	    }
+		$("#ajax_status").text("通信完了！");
+	});
+
+	request.fail(function(jqXHR, textStatus, errorThrown) {
+			console.dir("----fail.----");
+			console.dir("fail-jqXHR"+jqXHR);             //オブジェクト
+      console.dir("fail-textStatus:"+textStatus);  //通信ステータス
+      console.dir("fail-errorThrown"+errorThrown); //エラーメッセージ
+	});
+
+	request.always(function(data, textStatus) {
+			console.dir("----always.----");
+			console.dir("always-data:"+data);              //データ
+	    console.dir("always-textStatus:"+textStatus);  //通信ステータス
+	});
+
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Ajax通信 JSONPから取得</title>
+  <link rel="stylesheet" href="css/slick.css">
+  <link rel="stylesheet" href="css/slick-theme.css">
+  <style>
+    img{
+      width: 80%;
+      height: auto;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+
+<h1 id="ajax_status">Ajax通信中...</h1>
+<div class="wrapper"></div>
+
+
+<script src="http://code.jquery.com/jquery-2.2.0.min.js"></script>
+<script src="js/slick.js"></script>
+
+</script>
+<script>
+$(document).ready(function(){
+
+    //AJAX通信(ver1.8...)
+    var request = $.ajax({
+        type: 'POST',      //GET,POST
+        data:{             //Dataプロパティはデータを送信（渡す）役目
+            sleep: 0       //Timeoutテスト用
+        },
+        url: "method_jsonp.php",
+        async:true,         //非同期=true・同期=false
+        cache:false,        //初期値はtrueでキャッシュする状態
+        dataType: 'jsonp',  //text, html, xml, json, jsonp, script
+        jsonpCallback: 'jsonp_data', // callbackname jsonp側と合わせる
+        timeout: 3000
+    });
+
+    request.done(function(data, textStatus) {
+        // パース処理
+        var len = data.length;
+        for(var i=0; i<len; i++){
+           $(".wrapper").append('<p class=".single-item"><img src="'+data[i].src + '" alt='+data[i].alt+'></p>');
+        }
+
+        //通信完了
+        $("#ajax_status").text("通信完了！");
+        $('.wrapper').slick({
+            infinite: true,
+            fade: true,
+            cssEase: 'linear',
+            autoplay:true,
+            autoplaySpeed:1000,
+            dots:true,
+            pauseOnHover:true
+        });
+    });
+
+
+    request.fail(function(jqXHR, textStatus, errorThrown) {
+            console.dir("----fail.----");
+            console.dir("fail-jqXHR"+jqXHR);             //オブジェクト
+            console.dir("fail-textStatus:"+textStatus);  //通信ステータス
+            console.dir("fail-errorThrown"+errorThrown); //エラーメッセージ
+    });
+
+    request.always(function(data, textStatus) {
+            console.dir("----always.----");
+            console.dir("always-data:"+data);              //データ
+            console.dir("always-textStatus:"+textStatus);  //通信ステータス
+    });
+
+});
+</script>
+
+</body>
+</html>

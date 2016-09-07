@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>fadeInDown</title>
+</head>
+<style type="text/css">
+.js-fadeInDown {
+	animation-fill-mode:both;
+	animation-duration:1s;
+	animation-name: fadeInDown;
+	visibility: visible !important;
+}
+@keyframes fadeInDown {
+	0% { opacity: 0; transform: translateY(-20px); }
+	100% { opacity: 1; transform: translateY(0); }
+}
+
+
+img:first-child{
+	margin-top: 300px;
+}
+</style>
+<body>
+
+<img class="js-scrollTarget" src="http://placehold.it/640x340/27709b/ffffff">
+<img class="js-scrollTarget" src="http://placehold.it/640x340/27709b/ffffff">
+<img class="js-scrollTarget" src="http://placehold.it/640x340/27709b/ffffff">
+<img class="js-scrollTarget" src="http://placehold.it/640x340/27709b/ffffff">
+<img class="js-scrollTarget" src="http://placehold.it/640x340/27709b/ffffff">
+<img class="js-scrollTarget" src="http://placehold.it/640x340/27709b/ffffff">
+
+
+<script src="http://code.jquery.com/jquery-2.2.0.min.js"></script>
+<script type="text/javascript">
+
+/* ======================================
+ * スクロールアニメーション
+ * ====================================== */
+
+$('.js-scrollTarget').css('visibility','hidden');
+$(window).scroll(function(){
+	var $windowHeight = $(window).height(),
+		$topWindow = $(window).scrollTop();
+	$('.js-scrollTarget').each(function(){
+		var $targetPosition = $(this).offset().top;
+		if( $topWindow > $targetPosition - $windowHeight + 100 ){
+			$(this).addClass("js-fadeInDown");
+		}
+	});
+});
+
+</script>
+	
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>when()</title>
+</head>
+<body>
+
+  <div id="ajax_status1">Ajax通信中...</div>
+  <div id="ajax_status2"></div>
+  <div id="ajax_status3"></div>
+
+
+<script src="http://code.jquery.com/jquery-2.2.0.min.js"></script>
+<script>
+$(document).ready(function(){
+
+  const $txt1 = $('#ajax_status1');
+  const $txt2 = $('#ajax_status2');
+
+  const promise1 = $.get('ajax1.php');
+  const promise2 = $.get('ajax2.php');
+
+  const promise = $.when(promise1, promise2);
+  promise.done( onSuccess );
+  promise.fail( onFailure );
+
+  function onSuccess (data1, data2) {
+    $txt1.text( data1 );
+    $txt2.text( data2 );
+    console.log('両方成功');
+  }
+  function onFailure (data) {
+    console.log('どちらか失敗');
+  }
+
+});
+
+
+
+
+</script>
+
+</body>
+</html>

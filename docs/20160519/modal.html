@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>modal</title>
+</head>
+<style>
+body {
+  font: 14px Poiret One;
+  background: #e3e3e3;
+}
+
+.btn {
+  width: 80px; height: 45px;
+  line-height: 45px;
+  text-align: center;
+  background: #fff;
+  box-shadow: 0 0 4px rgba(0, 0, 0, .2);
+  cursor: pointer;
+  transition: box-shadow .2s ease-in-out;
+}
+
+.open {
+  position: absolute;
+  top: 0; bottom: 0;
+  left: 0; right: 0;
+  margin: auto;
+}
+
+.popup {
+  box-sizing: border-box;
+  position: absolute;
+  top: 0; bottom: 0;
+  left: 0; right: 0;
+  margin: auto;
+  padding: 20px;
+  width: 320px; height: 180px;
+  background: #fff;
+  box-shadow: 0 0 4px rgba(0, 0, 0, .2);
+}
+.popup .btn{
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+#overlay{
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+}
+</style>
+<body>
+
+
+<div id="open" class="btn open">OPEN</div>
+
+
+
+<script src="http://code.jquery.com/jquery-2.2.0.min.js"></script>
+<script src="js/Modal.js"></script>
+<script>
+
+$('#open').on('click', function(){
+  Modal.open();
+
+  $('#close, #overlay').on('click', function(){
+    Modal.close();
+  })
+
+})
+
+
+</script>
+</body>
+</html>

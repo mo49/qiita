@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta charset="UTF-8">
+	<title>modal</title>
+</head>
+<style>
+body{
+	height: 2000px;
+}
+.btn{
+	position: relative;
+	margin: 500px auto 0;
+	width: 100px;
+	height: 30px;
+	line-height: 30px;
+	background-color: skyblue;
+	text-align: center;
+	font-weight: bold;
+	color: #fff;
+	cursor: pointer;
+}
+#overlay{
+	position:fixed;
+	left:0;
+	top:0;
+	height:100%;
+	width:100%;
+	background:rgba(0, 0, 0, .8);
+}
+
+#modal-img{
+	width: 640px; /* closeボタンの位置を揃えるために画像サイズに合わせる */
+	position: absolute;
+	top: 0;
+	left:50%;
+	transform:translate(-50%, 0);
+	z-index: 1;
+}
+
+#close-img{
+	position:absolute;
+	top: -80px;
+	right:0;
+	cursor: pointer;
+	z-index: 2;
+}
+
+#sample-img{
+	position:absolute;
+	left:50%;
+	transform:translate(-50%, 0);
+}
+
+
+
+</style>
+<body>
+
+<div class="btn">BUTTON</div>
+
+
+
+<script src="http://code.jquery.com/jquery-2.2.0.min.js"></script>
+<script>
+
+'use strict';
+
+(function(){
+
+// 端末判定
+if ((navigator.userAgent.indexOf('iPhone') > 0 && navigator.userAgent.indexOf('iPad') == -1) || navigator.userAgent.indexOf('iPod') > 0 || navigator.userAgent.indexOf('Android') > 0) {
+	$('body').addClass('env-sp');
+} else {
+	$('body').addClass('env-pc');
+}
+
+
+$(".btn").click(function(){
+
+    modalGen();
+
+    var scrollTop = window.scrollY;
+    $('#modal-img').css("margin-top", scrollTop + 100);
+    console.log(scrollTop);
+
+    return false;
+});
+
+function modalGen(){
+
+    // 大枠
+    $("body").append('<div id="overlay">');
+    $("body").append('<div id="modal-img">');
+
+    $("#overlay").hide();
+    $("#modal-img").hide();
+
+    $("#overlay").fadeIn();
+    $("#modal-img").fadeIn();
+
+    // 大枠の中身
+    var img = new Image();
+    img.id = "sample-img";
+    var imgClose = new Image();
+    imgClose.id = "close-img";
+
+    // pc or sp
+    if ($('body').hasClass('env-pc')) {
+        img.src = "http://placehold.it/640x340/27709b/ffffff";
+        imgClose.src = "img/close.png";
+    }else{
+        img.src = "http://placehold.it/320x170/27709b/ffffff";
+        imgClose.src = "img/close.png";
+    }
+    $('#modal-img').append(img);
+    $('#modal-img').append(imgClose);
+
+    // 削除
+    $("#overlay, #close-img").click(function(){
+        $("#overlay").fadeOut(function(){
+            $(this).remove();
+        });
+
+        $("#modal-img").fadeOut(function(){
+            $(this).remove();
+        });
+    });
+}
+
+
+})();
+
+
+
+
+</script>
+	
+</body>
+</html>

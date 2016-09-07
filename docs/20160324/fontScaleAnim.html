@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>fontScaleAnim</title>
+<style type="text/css">
+.fontScaleAnim {
+  animation-name: fontScaleAnim;
+  animation-duration: 1000ms;
+  animation-fill-mode: forwards;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  transform-origin: bottom; /* topにすれば上からパタパタ降りてくるアニメーション */
+}
+@keyframes fontScaleAnim {
+  0% {transform: scaleY(0) rotateY(0deg);}
+  3.33% {transform: scaleY(0.0084) rotateY(0.0667deg);}
+  6.67% {transform: scaleY(0.0336) rotateY(0.1333deg);}
+  10% {transform: scaleY(0.0756) rotateY(0.2deg);}
+  13.33% {transform: scaleY(0.1344) rotateY(0.2667deg);}
+  16.67% {transform: scaleY(0.2101) rotateY(0.3333deg);}
+  20% {transform: scaleY(0.3025) rotateY(0.4deg);}
+  23.33% {transform: scaleY(0.4117) rotateY(0.4667deg);}
+  26.67% {transform: scaleY(0.5378) rotateY(0.5333deg);}
+  30% {transform: scaleY(0.6806) rotateY(0.6deg);}
+  33.33% {transform: scaleY(0.8403) rotateY(0.6667deg);}
+  36.67% {transform: scaleY(1.0083) rotateY(0.7333deg);}
+  40% {transform: scaleY(1.09) rotateY(0.8deg);}
+  43.33% {transform: scaleY(1.1549) rotateY(0.8667deg);}
+  46.67% {transform: scaleY(1.2031) rotateY(0.9333deg);}
+  50% {transform: scaleY(1.2344) rotateY(1deg);}
+  53.33% {transform: scaleY(1.2489) rotateY(1.0667deg);}
+  56.67% {transform: scaleY(1.2466) rotateY(1.1333deg);}
+  60% {transform: scaleY(1.2275) rotateY(1.2deg);}
+  63.33% {transform: scaleY(1.1916) rotateY(1.2667deg);}
+  66.67% {transform: scaleY(1.1389) rotateY(1.3333deg);}
+  70% {transform: scaleY(1.0694) rotateY(1.4deg);}
+  73.33% {transform: scaleY(1.0081) rotateY(1.4667deg);}
+  76.67% {transform: scaleY(1.0424) rotateY(1.5333deg);}
+  80% {transform: scaleY(1.06) rotateY(1.6deg);}
+  83.33% {transform: scaleY(1.0608) rotateY(1.6667deg);}
+  86.67% {transform: scaleY(1.0447) rotateY(1.7333deg);}
+  90% {transform: scaleY(1.0119) rotateY(1.8deg);}
+  93.33% {transform: scaleY(1.0122) rotateY(1.8667deg);}
+  96.67% {transform: scaleY(1.0145) rotateY(1.9333deg);}
+  100% {transform: scaleY(1) rotateY(2deg);}
+}
+
+.delay100 { animation-delay: 100ms; }
+.delay300 { animation-delay: 300ms; }
+.delay500 { animation-delay: 500ms; }
+.delay700 { animation-delay: 700ms; }
+
+p{
+	display: inline-block;
+	font-size: 3rem;
+}
+
+
+</style>
+
+</head>
+<body>
+<p class="fontScaleAnim delay100">フ</p>
+<p class="fontScaleAnim delay300">ォ</p>
+<p class="fontScaleAnim delay500">ン</p>
+<p class="fontScaleAnim delay700">ト</p>
+	
+</body>
+</html>

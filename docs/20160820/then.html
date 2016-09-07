@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>then()</title>
+</head>
+<body>
+
+  <div id="ajax_status1">Ajax通信中...</div>
+  <div id="ajax_status2"></div>
+  <div id="ajax_status3"></div>
+
+
+<script src="http://code.jquery.com/jquery-2.2.0.min.js"></script>
+<script>
+$(document).ready(function(){
+
+  const $txt1 = $('#ajax_status1');
+  const $txt2 = $('#ajax_status2');
+  const $txt3 = $('#ajax_status3');
+
+  const promise1 = $.get('ajax1.php');
+  const promise2 = promise1.then( (data) => {
+    $txt1.text(data);
+    return $.get('ajax2.php');
+  });
+  const promise3 = promise2.then( (data) => {
+    $txt2.text(data);
+    return $.get('ajax3.php');
+  });
+
+  promise3.done(function(data) {
+    $txt3.text(data);
+    console.log('終了');
+  });
+
+});
+
+
+
+
+</script>
+
+</body>
+</html>

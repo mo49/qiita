@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>canvas mask</title>
+</head>
+<style>
+body{
+    background-color: #ddd;
+}
+p{
+    font-weight: bold;
+    font-size: 18px;
+    margin-top: 30px;
+}
+</style>
+<body>
+<!--
+パスでマスクをかける
+
+マスクをかけたい画像の直前にclip()を書けば、
+その部分だけにマスクをかけられる。
+（枠にはマスクがかかっていない）
+
+```
+// パスでマスク
+// 枠
+ctx.drawImage(imgAry[0], 0, 0, canvas.width, canvas.height);
+
+// 円
+ctx.beginPath();
+ctx.arc(150, 150, 100, 0, Math.PI * 2, false);
+ctx.clip();
+
+// 背景
+ctx.drawImage(imgAry[1], 0, 0, canvas.width, canvas.height);
+
+```
+
+画像でマスクをかける
+
+ctx.globalCompositeOperation = 'destination-in';を記述した直後の画像で合成する。
+canvas全体に影響を与えるので、一部だけにマスクをかけたい場合は、
+もう一枚canvasを用意する必要がある。
+
+```
+// 画像でマスク
+ctx2.drawImage(imgAry[1], 0, 0, canvas.width, canvas.height);
+ctx2.drawImage(imgAry[0], 0, 0, canvas.width, canvas.height);
+
+ctx2.globalCompositeOperation = 'destination-in';
+ctx2.drawImage(imgAry[2], 50, 50, 200, 200);
+```
+
+
+ -->
+<p>clip()</p>
+<canvas id="canvas"></canvas>
+<p>globalCompositeOperation = 'destination-in'</p>
+<canvas id="canvas2"></canvas>
+
+<script src="http://code.jquery.com/jquery-2.2.0.min.js"></script>
+<script>
+// 読み込みたい画像のパスの配列 後ろが上にくる
+var fileAry = ['img/frame.png', 'img/test1.jpg', 'img/mask.png'];
+
+var numFiles = fileAry.length;
+var loadedCounter = 0;
+var imgAry = [];
+
+var canvas = document.getElementById('canvas');
+var ctx = canvas.getContext('2d');
+
+var canvas2 = document.getElementById('canvas2');
+var ctx2 = canvas2.getContext('2d');
+
+canvas.width = canvas.height = 300;
+canvas2.width = canvas2.height = 300;
+
+window.onload = function() {
+    loadImgs();
+};
+
+function loadImgs(){
+
+    var img = new Image();
+
+    img.addEventListener('load', function(){
+        loadedCounter++;
+        imgAry.push(img);
+        if(numFiles == loadedCounter){
+            display(); // 画像をすべて読み込んだら描画
+        } else {
+            loadImgs();
+        }
+    }, false);
+
+    img.src = fileAry[imgAry.length];
+}
+
+// 参照が残っているとガベージコレクトされないため、
+// 明示的にImageオブジェクトを解放
+function display(){
+
+    // パスでマスク
+    // 枠
+    ctx.drawImage(imgAry[0], 0, 0, canvas.width, canvas.height);
+
+    // 円
+    ctx.beginPath();
+    ctx.arc(150, 150, 100, 0, Math.PI * 2, false);
+    ctx.clip();
+
+    // 背景
+    ctx.drawImage(imgAry[1], 0, 0, canvas.width, canvas.height);
+
+    //
+
+    // 画像でマスク
+    ctx2.drawImage(imgAry[1], 0, 0, canvas.width, canvas.height);
+    ctx2.drawImage(imgAry[0], 0, 0, canvas.width, canvas.height);
+
+    ctx2.globalCompositeOperation = 'destination-in';
+    ctx2.drawImage(imgAry[2], 50, 50, 200, 200);
+
+
+}
+
+</script>
+</body>
+</html>
