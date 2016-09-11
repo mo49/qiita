@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+  <title>shader wave</title>
+  <script type="text/javascript" src="./js/libs/three.min.js"></script>
+  <script type="text/javascript" src="./js/libs/OBJLoader.js"></script>
+
+  <script data-src="shader/vertex.js" charset="utf-8" data-name="myShader" type="x-shader/x-vertex"></script>
+  <script data-src="shader/fragment.js" charset="utf-8"  data-name="myShader" type="x-shader/x-fragment"></script>
+
+  <script type="text/javascript" src="./js/libs/jquery-3.1.0.min.js"></script>
+  <script type="text/javascript" src="./js/libs/ShaderLoader.min.js"></script>
+  <script type="text/javascript" src="./js/libs/OrbitControls.js"></script>
+  <script type="text/javascript" src="./js/libs/FlyControls.js"></script>
+  <script type="text/javascript" src="./js/libs/stats.js"></script>
+  <script type="text/javascript" src="./js/libs/dat.gui.js"></script>
+<style>
+body {
+  /* set margin to 0 and overflow to hidden, to go fullscreen */
+  margin: 0;
+  overflow: hidden;
+}
+#guide{
+  color: #fff;
+  font-size: 2rem;
+  position: absolute;
+  left: 10px;
+  top: 5px;
+}
+</style>
+</head>
+<body>
+
+  <div id="Stats-output">
+</div>
+<!-- Div which will hold the Output -->
+<div id="webgl-output">
+</div>
+
+<div id="guide">double click</div>
+
+<!-- Javascript code that runs our Three.js examples -->
+<script type="text/javascript">
+
+
+class Sample {
+
+  constructor(opt = {}) {
+    this.width = window.innerWidth;
+    this.height = window.innerHeight;
+
+    this.clock = new THREE.Clock();
+
+    this.uniforms = {
+      time : {
+        type : 'f',
+        value : 0.0
+      }
+    };
+
+    this.preload();
+
+  }
+
+  preload() {
+    SHADER_LOADER.load( (data) => {
+
+      const vs = data.myShader.vertex;
+      const fs = data.myShader.fragment;
+
+      this.initListener(vs, fs);
+    })
+  }
+
+  initListener(vs, fs) {
+    {
+      this.renderer = new THREE.WebGLRenderer();
+      this.renderer.setSize( this.width, this.height );
+      document.body.appendChild( this.renderer.domElement );
+    }
+    {
+      this.scene = new THREE.Scene();
+    }
+    {
+      this.camera = new THREE.PerspectiveCamera( 45, this.width / this.height, 0.01, 10000 );
+      this.camera.position.set( 3, 3, 3 );
+      this.camera.lookAt( this.scene.position );
+      this.scene.add( this.camera );
+    }
+    {
+      const light = new THREE.DirectionalLight( 0xffffff, 1 );
+      light.position.set( -1, 1, 1 );
+      this.scene.add( light );
+    }
+    { // controls
+      this.controls = new THREE.OrbitControls(this.camera);
+    }
+    {
+      const loader = new THREE.JSONLoader();
+      loader.load('./data/city.json', (geometry, material) => {
+
+      material = new THREE.ShaderMaterial( {
+        // shader適応
+        vertexShader: vs,
+        fragmentShader: fs,
+        uniforms : this.uniforms,
+        wireframe: true
+      } );
+
+        const mesh = new THREE.Mesh( geometry, material );
+        this.scene.add( mesh );
+      });
+    }
+
+    let isDrag = false;
+
+    $(document.body).on('mousedown', () => {
+      isDrag = false;
+    });
+    $(document.body).on('mousemove', () => {
+      isDrag = true;
+    });
+    $(document.body).on('mouseup', () => {
+      if (!isDrag) {
+
+      }
+    });
+
+    $(window).on('dblclick', () => {
+      this.anim();
+    });
+    this.render();
+
+
+
+  }
+
+  anim() {
+    this.uniforms.time.value += 0.03;
+    requestAnimationFrame( () => {
+      this.anim();
+    })
+  }
+
+  render() {
+    const delta = this.clock.getDelta();
+    this.controls.update(delta);
+
+    this.renderer.render( this.scene, this.camera );
+
+    this.loopId = requestAnimationFrame( () => {
+      this.render();
+    })
+  }
+
+  stop() {
+    cancelAnimationFrame(this.loopId);
+  }
+
+
+
+}
+
+
+(() => {
+
+  const sample = new Sample({
+    output: document.getElementById('webgl-output')
+  });
+
+})();
+
+
+
+
+
+
+
+
+</script>
+</body>
+</html>
