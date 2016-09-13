@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+  <title>テクスチャ 円周運動</title>
+  <script src="http://code.jquery.com/jquery-2.2.0.min.js"></script>
+  <script type="text/javascript" src="./js/libs/three.min.js"></script>
+  <script type="text/javascript" src="./js/libs/OrbitControls.js"></script>
+  <script type="text/javascript" src="./js/libs/Tween.js"></script>
+<style>
+body {
+  /* set margin to 0 and overflow to hidden, to go fullscreen */
+  margin: 0;
+  overflow: hidden;
+}
+</style>
+</head>
+<body>
+
+  <div id="Stats-output">
+</div>
+<!-- Div which will hold the Output -->
+<div id="webgl-output">
+</div>
+
+<!-- Javascript code that runs our Three.js examples -->
+<script type="text/javascript">
+
+
+class Sample {
+
+  constructor (opts = {}) {
+
+    this.width = window.innerWidth;
+    this.height = window.innerHeight;
+    this.output = opts.output || document.createElement('div');
+
+    this.degree = 0;
+
+    this.init();
+  }
+
+  init () {
+    { // renderer
+      this.renderer = new THREE.WebGLRenderer({ antialias: true });
+      this.renderer.setClearColor( 0x222222 ); // 背景色
+      this.renderer.setPixelRatio(window.devicePixelRatio || 1);
+      this.renderer.setSize( this.width, this.height );
+      this.output.appendChild( this.renderer.domElement );
+    }
+    { // scene
+      this.scene = new THREE.Scene();
+    }
+    { // lights
+      this.light = new THREE.DirectionalLight(0xffffcc, 1);
+      this.light.position.set(0,100,30);
+      this.scene.add(this.light);
+      const ambientLight = new THREE.AmbientLight(0xffaa55);
+      this.scene.add(ambientLight);
+    }
+    { // camera
+      const perscamera = new THREE.PerspectiveCamera( 45, this.width / this.height, 1, 10000 ); // fov(視野角),aspect,near,far
+      const orthocamera = new THREE.OrthographicCamera( this.width / -2, this.width / 2, this.height / 2, this.height / -2, 1, 10000 );
+      this.camera = perscamera;
+      this.camera.position.set( 200, 200, 200 );
+      this.camera.lookAt( this.scene.position );
+    }
+    { // helper
+      const gridHelper = new THREE.GridHelper(200,50); // size, step
+      this.scene.add(gridHelper);
+      const axisHelper = new THREE.AxisHelper(200,50);
+      this.scene.add(axisHelper);
+      const lightHelper = new THREE.DirectionalLightHelper(this.light,20);
+      this.scene.add(lightHelper);
+    }
+    { // controls
+      this.controls = new THREE.OrbitControls(this.camera);
+    }
+    { // texture
+      const imageFiles = [
+        "nav_camera.png",
+        "nav_phone.png",
+        "nav_mail.png",
+        "nav_settings.png"
+      ];
+
+      this.menu1 = this.createMenu(imageFiles, 10);
+      this.menu2 = this.createMenu(imageFiles, 20);
+      this.menu3 = this.createMenu(imageFiles, 40);
+
+      // this.menus = [];
+      // this.diameter = 20;
+      //
+      // for (let [i, src] of imageFiles.entries()) {
+      //   const geom = new THREE.PlaneGeometry(this.diameter,this.diameter,20);
+      //   const plane = this.createMesh(geom, src);
+      //   plane.position.set(i * 25, 0, 0);
+      //   this.scene.add(plane);
+      //   this.menus.push(plane);
+      // }
+    }
+
+    this.render();
+    window.addEventListener('resize', () => {
+        this.onResize();
+    }, false);
+
+    $(window).on('click', () => {
+      this.showMenu(this.menu1,0,0,0,50,10); // menu, offsetX, offsetY, offsetZ, radius, space
+      this.showMenu(this.menu2,100,100,100,50,20);
+      this.showMenu(this.menu3,-50,-10,-50,150,10);
+    })
+
+  }
+
+  render () {
+    requestAnimationFrame( () => {
+      this.render();
+    });
+    this.controls.update();
+    this.renderer.render( this.scene, this.camera );
+
+  }
+
+  createMenu (imageFiles, diameter) {
+    this.menus = [];
+
+    for (let [i, src] of imageFiles.entries()) {
+      const geom = new THREE.PlaneGeometry(diameter,diameter,20);
+      const plane = this.createMesh(geom, src);
+      plane.visible = false; // 一旦非表示
+      this.scene.add(plane);
+      this.menus.push(plane);
+    }
+
+    return this.menus;
+  }
+
+  createMesh (geom, imageFile) {
+    const PATH = './img/texture/';
+    const textureLoader = new THREE.TextureLoader();
+    const texture = textureLoader.load(PATH + imageFile);
+    const mat = new THREE.MeshBasicMaterial({transparent:true});
+    mat.map = texture;
+
+    const mesh = new THREE.Mesh(geom, mat);
+    return mesh;
+  }
+
+  showMenu(menus, offsetX, offsetY, offsetZ, radius, space) {
+
+    const that = this;
+    let degree = 0;
+    let loopId;
+
+    update();
+    function update() {
+      loopId = requestAnimationFrame(update);
+      for (let [i, menu] of menus.entries()) {
+        menu.visible = true; // 表示
+        if (degree > i*space) {
+          continue;
+        }
+        const pos = move(radius, i+1); // radius, index
+        menu.position.set(pos['x'] + offsetX, pos['y'] + offsetY,  offsetZ);
+      }
+      degree++;
+      if (degree > menus.length * space) {
+        stop();
+      }
+    }
+
+    function stop() {
+      cancelAnimationFrame(loopId);
+      console.log("stop");
+    }
+
+    function move (radius, index) {
+      // speed = speed || 1.0;
+      const rad = (degree * Math.PI / 180) * 2;
+      const x = radius * Math.sin(rad);
+      const y = radius * Math.cos(rad);
+
+      return {'x':x, 'y':y};
+    }
+
+  }
+
+  onResize () {
+    this.camera.aspect = window.innerWidth / window.innerHeight;
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize( window.innerWidth, window.innerHeight );
+  }
+
+}
+
+
+
+(() => {
+
+  const sample = new Sample({
+    output: document.getElementById('webgl-output')
+  });
+
+})();
+
+
+
+
+
+
+
+
+</script>
+</body>
+</html>
