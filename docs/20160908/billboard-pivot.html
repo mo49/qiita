@@ -124,6 +124,7 @@ class Sample {
 
     const mesh = new THREE.Mesh(geom, mat);
     mesh.position.set(posX, posY, posZ);
+    mesh.name = src;
 
     geom.applyMatrix( new THREE.Matrix4().makeTranslation( offsetX, offsetY, offsetZ ) );
 
