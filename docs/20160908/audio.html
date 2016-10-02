@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+  <title>audio api</title>
+  <script src="./js/libs/three.min.js"></script>
+  <script src="./js/libs/OBJLoader.js"></script>
+
+
+  <script src="http://code.jquery.com/jquery-2.2.0.min.js"></script>
+  <script src="./js/libs/OrbitControls.js"></script>
+  <script src="./js/libs/FlyControls.js"></script>
+  <script src="./js/libs/FirstPersonControls.js"></script>
+  <script src="./js/libs/stats.js"></script>
+  <script src="./js/libs/dat.gui.js"></script>
+<style>
+body {
+  /* set margin to 0 and overflow to hidden, to go fullscreen */
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+</style>
+</head>
+<body>
+
+  <div id="Stats-output">
+</div>
+<!-- Div which will hold the Output -->
+<div id="webgl-output">
+</div>
+
+<!-- Javascript code that runs our Three.js examples -->
+<script type="text/javascript">
+
+class Sample {
+
+  constructor(opt = {}) {
+    this.width = window.innerWidth;
+    this.height = window.innerHeight;
+
+    this.clock = new THREE.Clock();
+
+    this.initListener();
+
+  }
+
+  initListener() {
+    {
+      this.renderer = new THREE.WebGLRenderer({ antialias: true });
+      this.renderer.setPixelRatio(window.devicePixelRatio || 1);
+      this.renderer.setClearColor( 0x000000 ); // 背景色
+      this.renderer.setSize( this.width, this.height );
+      document.body.appendChild( this.renderer.domElement );
+    }
+    {
+      this.scene = new THREE.Scene();
+    }
+    {
+      this.camera = new THREE.PerspectiveCamera( 50, this.width / this.height, 1, 10000 );
+      this.camera.position.set( -200, 25, 0 );
+      // this.camera.lookAt( this.scene.position );
+      this.scene.add( this.camera );
+    }
+    {
+      this.directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
+      this.directionalLight.position.set( -200, 50, 100 );
+      this.scene.add( this.directionalLight );
+      this.ambientLight = new THREE.AmbientLight( 0xffffff, 1 );
+      this.scene.add( this.ambientLight );
+    }
+    { // helper
+      const gridHelper = new THREE.GridHelper(200,50); // size, step
+      this.scene.add(gridHelper);
+      const axisHelper = new THREE.AxisHelper(200,50);
+      this.scene.add(axisHelper);
+      // const lightHelper = new THREE.DirectionalLightHelper(this.directionalLight,20);
+      // this.scene.add(lightHelper);
+    }
+    { // controls
+			this.camControls = new THREE.FirstPersonControls(this.camera);
+			this.camControls.lookSpeed = 0.1;
+			this.camControls.movementSpeed = 50;
+			this.camControls.noFly = true;
+			this.camControls.lookVertical = false; // false : 首を上下に振れない
+
+      // this.controls = new THREE.OrbitControls(this.camera);
+      // this.controls.autoRotate = true;
+
+    }
+    { // sound box
+			const SOUNDBOX_DATA = [
+				{
+					imgSrc: './img/rad.png',
+					audioSrc: './sound/rad.mp3',
+					pos: {
+						x:0,
+						y:15,
+						z:0
+					}
+				},
+				{
+					imgSrc: './img/utada.jpg',
+					audioSrc: './sound/utada.mp3',
+					pos: {
+						x:0,
+						y:15,
+						z:100
+					}
+				},
+				{
+					imgSrc: './img/yonezu.jpg',
+					audioSrc: './sound/yonezu.mp3',
+					pos: {
+						x:0,
+						y:15,
+						z:-100
+					}
+				}
+			]
+
+			for (let data of SOUNDBOX_DATA) {
+				const mesh = this.createSoundBox(data.imgSrc, data.pos);
+				this.scene.add(mesh);
+
+				// console.log(data.audioSrc, mesh)
+				this.setAudio(data.audioSrc, mesh);
+			}
+
+    }
+
+    this.startRender();
+  }
+
+	createSoundBox(src, pos) {
+		const geom = new THREE.BoxGeometry(30,30,30);
+		const textureLoader = new THREE.TextureLoader();
+		const texture = textureLoader.load(src);
+		texture.minFilter = texture.magFilter = THREE.LinearFilter;
+		const mat = new THREE.MeshBasicMaterial({
+			color:0xffffff,
+			side:THREE.DoubleSide,
+			map:texture
+		})
+		const mesh = new THREE.Mesh(geom, mat);
+		mesh.position.set(pos.x, pos.y, pos.z);
+
+		return mesh;
+	}
+
+	setAudio(src, mesh, refDis, rolloff, volume) {
+		const listener = new THREE.AudioListener();
+		this.camera.add(listener);
+
+		const sound = new THREE.PositionalAudio(listener);
+		const audioLoader = new THREE.AudioLoader();
+
+		refDis = refDis || 10; // 音量が下がり始める距離
+		rolloff = rolloff || 2; // 音源から遠ざかった時にどのくらいすぐに音量が下がるか
+		volume = volume || 1;
+
+		audioLoader.load(src, (buffer) => {
+			sound.autoplay = true;
+			sound.setBuffer(buffer);
+			sound.setRefDistance(refDis);
+			sound.setLoop(true);
+			sound.setRolloffFactor(rolloff);
+			sound.setVolume(volume);
+			mesh.add(sound);
+		})
+	}
+
+  startRender() {
+    const delta = this.clock.getDelta();
+    this.camControls.update(delta);
+
+    this.renderer.render( this.scene, this.camera );
+
+    this.loopId = requestAnimationFrame( () => {
+      this.startRender();
+    })
+  }
+
+  stopRender() {
+    cancelAnimationFrame( this.loopId );
+  }
+
+}
+
+
+(() => {
+
+  const sample = new Sample({
+    output: document.getElementById('webgl-output')
+  });
+
+})();
+
+
+
+
+
+
+
+
+</script>
+</body>
+</html>
