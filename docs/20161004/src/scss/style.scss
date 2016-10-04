@@ -1,0 +1,23 @@
+// reset css
+@import 'bower_components/reset-css/reset.css';
+
+// config
+@import 'variable', 'function', 'mixin', 'keyframes';
+
+// modules
+@import 'module/wrapper';
+
+// pages
+@import 'page/index';
+
+body{
+	background-color: #111;
+}
+
+#canvas{
+	position: absolute;
+	top: 0;
+	left: 0;
+	// left: 50%;
+	// transform: rotateX(-50%);
+}
