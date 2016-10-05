@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+</head>
+<style>
+*{
+  margin: 0;
+  padding: 0;
+}
+body{
+  background-color: #00090f;
+}
+</style>
+<body>
+
+<div id="webgl-output"></div>
+
+<script src="./js/three.min.js"></script>
+
+
+<script id="vs" type="x-shader/x-vertex">
+   attribute vec3 color;
+   uniform float size;
+   varying vec3 vColor;
+
+   void main() {
+      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+      vColor = color;
+
+      gl_PointSize = size;
+      gl_Position = projectionMatrix * mvPosition;
+   }
+</script>
+<script id="fs" type="x-shader/x-fragment">
+   uniform sampler2D texture;
+
+   varying vec3 vColor;
+
+   vec3 hsv2rgb(vec3 c){
+      vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+      vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+      return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+   }
+
+   void main() {
+      vec3 custom_color = hsv2rgb(vColor);
+      gl_FragColor = vec4(custom_color, 1.0) * texture2D(texture, gl_PointCoord);
+   }
+</script>
+
+
+<script>
+
+THREE.IcosahedronGeometry = function(radius, detail) {
+  const t = (1 + Math.sqrt(5)) / 2;
+  const vertices = [-1, t, 0, 1, t, 0, -1, -t, 0, 1, -t, 0,
+    0, -1, t, 0, 1, t, 0, -1, -t, 0, 1, -t,
+    t, 0, -1, t, 0, 1, -t, 0, -1, -t, 0, 1
+  ];
+  const indices = [
+    0, 11, 5, 0, 5, 1, 0, 1, 7, 0, 7, 10, 0, 10, 11,
+    1, 5, 9, 5, 11, 4, 11, 10, 2, 10, 7, 6, 7, 1, 8,
+    3, 9, 4, 3, 4, 2, 3, 2, 6, 3, 6, 8, 3, 8, 9,
+    4, 9, 5, 2, 4, 11, 6, 2, 10, 8, 6, 7, 9, 8, 1
+  ];
+  THREE.PolyhedronGeometry.call(this, vertices, indices, radius, detail);
+  this.type = 'IcosahedronGeometry';
+  this.parameters = {
+    radius: radius,
+    detail: detail
+  };
+};
+THREE.IcosahedronGeometry.prototype = Object.create(THREE.PolyhedronGeometry.prototype);
+THREE.IcosahedronGeometry.prototype.constructor = THREE.IcosahedronGeometry;
+
+
+class Globe {
+
+  constructor (opts = {}) {
+
+    this.width = window.innerWidth;
+    this.height = window.innerHeight;
+    this.output = opts.output || document.createElement('div');
+
+    this.init();
+  }
+
+  init () {
+    { // renderer
+      this.renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: true
+      });
+      this.renderer.setClearColor( 0x00090f, 0 ); // 背景色 透明
+      this.renderer.setPixelRatio(window.devicePixelRatio || 1);
+      this.renderer.setSize( this.width, this.height );
+      this.output.appendChild( this.renderer.domElement );
+    }
+    { // scene
+      this.scene = new THREE.Scene();
+      this.scene.fog = new THREE.FogExp2(0x00090f, 0.05);
+    }
+    { // lights
+      const ambientLight = new THREE.AmbientLight(0xffffff);
+      this.scene.add(ambientLight);
+    }
+    { // camera
+      const perscamera = new THREE.PerspectiveCamera( 75, this.width / this.height, 0.1, 1000 ); // fov(視野角),aspect,near,far
+      this.camera = perscamera;
+      // this.camera.position.set( 20, 20, 20 );
+      this.camera.position.z = 20;
+      this.camera.lookAt( this.scene.position );
+    }
+    { // vertex points
+      const icosaGeom = new THREE.IcosahedronGeometry(8, 1); // radius, detail (+1で4倍)
+      const vertices = icosaGeom.vertices; // vec3
+      const positions = new Float32Array(vertices.length * 3);
+      const colors_base = [];
+      for (var i = 0; i < vertices.length; i++) {
+        vertices[i].toArray(positions, i * 3);
+        let color;
+        switch (i % 4) {
+          case 0: color = { h: 0.6, s: 0.72, v: 0.95 }; break;
+          case 1: color = { h: 0.37, s: 0.69, v: 0.65 }; break;
+          case 2: color = { h: 0.12, s: 0.98, v: 0.98 }; break;
+          case 3: color = { h: 0.0, s: 0.80, v: 1.0 }; break;
+          default: color = { h: 0.0, s: 0.80, v: 1.0 }
+        }
+        colors_base.push(color.h, color.s, color.v);
+      }
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const colors = new Float32Array(colors_base);
+      geometry.addAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+      const shaderMat = new THREE.ShaderMaterial({
+        uniforms: {
+          size: {
+            type: 'f',
+            value: 12.0
+          },
+          texture: {
+            type: 't',
+            value: this.createTexture()
+          }
+        },
+        vertexShader: document.getElementById('vs').textContent,
+        fragmentShader: document.getElementById('fs').textContent,
+        transparent: true,
+        depthWrite: false
+      });
+
+      this.object = new THREE.Object3D();
+
+      // points
+      const points = new THREE.Points(geometry, shaderMat);
+      this.object.add(points);
+
+      // lines
+      this.object.add(new THREE.Mesh(
+        icosaGeom,
+        new THREE.MeshPhongMaterial({
+          color: 0x0062b2,
+          emissive: 0x0062b2,
+          wireframe: true,
+          wireframeLinewidth: 1,
+          fog: 1
+        })
+      ));
+
+      this.scene.add(this.object);
+    }
+
+    this.render();
+    window.addEventListener('resize', () => {
+        this.onResize();
+    }, false);
+
+  }
+
+  createTexture() {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const CANVAS_SIZE = 128;
+
+    canvas.width = canvas.height = CANVAS_SIZE;
+    ctx.fillStyle = "rgba(255, 255, 255, 1)";
+    ctx.arc(CANVAS_SIZE/2, CANVAS_SIZE/2, CANVAS_SIZE/2, 0, Math.PI / 180, true);
+    ctx.fill();
+
+    const texture = new THREE.Texture(canvas);
+    texture.minFilter = THREE.NearestFilter;
+    texture.needsUpdate = true;
+    return texture;
+  };
+
+  render () {
+    requestAnimationFrame( () => {
+      this.render();
+    });
+
+    this.object.rotation.x += 0.0005;
+    this.object.rotation.y += 0.0005;
+    this.object.rotation.z += 0.0005;
+
+    this.renderer.render( this.scene, this.camera );
+  }
+
+  onResize () {
+    this.camera.aspect = window.innerWidth / window.innerHeight;
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize( window.innerWidth, window.innerHeight );
+  }
+}
+
+
+(() => {
+
+  const globe = new Globe({
+    output: document.getElementById('webgl-output')
+  });
+
+})();
+
+
+</script>
+</body>
+</html>
