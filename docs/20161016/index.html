@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Chapter-14b-4</title>
+		<meta charset="utf-8">
+	</head>
+
+<style>
+*{
+	padding: 0;
+	margin: 0;
+}
+body{
+	/*background-color: skyblue;*/
+	/*background-image: url(./img/bg3.jpg);
+	background-size: cover;*/
+	background-image: linear-gradient(
+			to bottom,
+			rgba(66,133,244,0.5) 0%,
+			rgba(0,0,0,0) 50%,
+			rgba(66,133,244,0.5) 100%
+		);
+	background-image: linear-gradient(
+			to bottom,
+			rgba(0,0,0,1.0) 0%,
+			rgba(0,0,0,0.8) 50%,
+			rgba(0,0,0,1.0) 100%
+		);
+}
+</style>
+<body>
+<script src="./js/build/three.min.js"></script>
+<script src="./js/libs/charsetencoder.min.js"></script>
+<script src="./js/libs/ammo.js"></script>
+<script src="./js/loaders/TGALoader.js"></script>
+<script src="./js/loaders/MMDLoader.js"></script>
+<script src="./js/animation/CCDIKSolver.js"></script>
+<script src="./js/animation/MMDPhysics.js"></script>
+<script src="//code.jquery.com/jquery-2.2.0.min.js"></script>
+
+<script>
+
+
+class Miku {
+	constructor(opts={}) {
+
+		this.count = 0;
+
+		this.mouseX = 0;
+		this.mouseY = 0;
+
+		this.windowHalfX = window.innerWidth / 2;
+		this.windowHalfY = window.innerHeight / 2;
+
+		this.clock = new THREE.Clock();
+
+		this.init();
+	}
+
+	init() {
+		{ // renderer
+			const container = document.createElement( 'div' );
+			document.body.appendChild( container );
+
+			this.renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true } );
+			this.renderer.setPixelRatio( window.devicePixelRatio );
+			this.renderer.setSize( window.innerWidth, window.innerHeight );
+			this.renderer.setClearColor( 0xffffff, 0 );
+			container.appendChild( this.renderer.domElement );
+		}
+		{ // scene
+			this.scene = new THREE.Scene();
+		}
+		{ // camera
+			this.camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
+			this.camera.position.set(0,0,50);
+		}
+		{ // light
+			const directionalLight = new THREE.DirectionalLight( 0x000000, 1 );
+			directionalLight.position.set( -100, 100, 100 );
+			this.scene.add( directionalLight );
+			const radius = 20; const strength = 2;
+			this.pointLight = new THREE.PointLight( 0xff00ff, strength, 100 );
+			this.pointLight.position.set( radius, 10, radius );
+			this.pointLight2 = new THREE.PointLight( 0x00ffff, strength, 100 );
+			this.pointLight2.position.set( -radius, 10, radius );
+			this.pointLight3 = new THREE.PointLight( 0x00ff00, strength, 100 );
+			this.pointLight3.position.set( radius, 10, -radius );
+			this.pointLight4 = new THREE.PointLight( 0xffff00, strength, 100 );
+			this.pointLight4.position.set( -radius, 10, -radius );
+			this.scene.add( this.pointLight, this.pointLight2, this.pointLight3, this.pointLight4 );
+			// const spotLight = new THREE.SpotLight( 0xffffff, 0.1 );
+			// spotLight.position.set( 100, 100, 100 );
+			// this.scene.add( spotLight );
+			const ambientLight = new THREE.AmbientLight( 0x888888 );
+			this.scene.add( ambientLight );
+
+			this.pHelper = new THREE.PointLightHelper(this.pointLight,10);
+			this.pHelper2 = new THREE.PointLightHelper(this.pointLight2,10);
+			this.pHelper3 = new THREE.PointLightHelper(this.pointLight3,10);
+			this.pHelper4 = new THREE.PointLightHelper(this.pointLight4,10);
+      // this.scene.add(this.pHelper, this.pHelper2, this.pHelper3, this.pHelper4);
+		}
+
+		this.createMMD();
+
+		this.initListener();
+		this.render();
+	}
+
+	createMMD() {
+
+		const onProgress = ( xhr ) => {
+			if ( xhr.lengthComputable ) {
+				const percentComplete = xhr.loaded / xhr.total * 100;
+				console.log( Math.round(percentComplete, 2) + '% downloaded' );
+			}
+		};
+
+		const onError = ( xhr ) => {
+			console.log('error');
+		};
+
+		const modelFile = 'models/model/model.pmd'; // モデルデータ（キャラ）
+		const stageFile = 'models/stage/stage.pmd'; // モデルデータ（ステージ）
+		const vmdFiles = [ 'vmds/dance.vmd' ];      // モーションデータ（キャラ）
+		const cameraFiles = [ 'vmds/camera.vmd' ];  // モーションデータ（カメラ）
+		const audioFile = 'audios/audio.mp3';
+
+		this.helper = new THREE.MMDHelper( this.renderer );
+
+		const loader = new THREE.MMDLoader();
+		loader.setDefaultTexturePath( './models/default/' );
+
+		loader.loadModel( modelFile, ( object ) => { // SkinnedMeshを生成
+
+			this.mesh = object;
+
+			loader.loadModel( stageFile, ( stage ) => {
+
+				loader.loadVmds( vmdFiles, ( vmd ) => {
+
+					loader.loadVmds( cameraFiles, ( vmd2 ) => {
+
+						loader.loadAudio( audioFile, ( audio, listener ) => {
+
+							listener.position.z = 10;
+
+							// this.mesh.position.set(0,-10,0);
+							this.helper.add( this.mesh );
+							loader.pourVmdIntoModel( this.mesh, vmd ); // アニメーションデータを流し込む
+							this.helper.setAnimation( this.mesh );
+
+							this.helper.setCamera( this.camera );
+							loader.pourVmdIntoCamera( this.camera, vmd2 );
+							this.helper.setCameraAnimation( this.camera );
+
+							this.helper.setAudio( audio, listener );
+
+							this.helper.unifyAnimationDuration(); // 各種アニメーション、音楽データの時間をそろえる
+
+							this.helper.setPhysics( this.mesh ); // 物理演算
+
+							this.scene.add( this.mesh );
+							this.scene.add( stage );
+							this.scene.add( audio );
+							this.scene.add( listener );
+
+						}, onProgress, onError );
+
+					}, onProgress, onError );
+
+				}, onProgress, onError );
+
+			}, onProgress, onError );
+
+		}, onProgress, onError );
+	}
+
+	initListener() {
+
+		$(document).on('mousemove', (e) => { this.onDocumentMouseMove(e); })
+		$(window).on('resize', () => { this.onWindowResize(); })
+		// $(window).on('click', () => { this.stop(); })
+
+	}
+
+	onWindowResize() {
+
+		this.windowHalfX = window.innerWidth / 2;
+		this.windowHalfY = window.innerHeight / 2;
+
+		this.camera.aspect = window.innerWidth / window.innerHeight;
+		this.camera.updateProjectionMatrix();
+
+		this.renderer.setSize( window.innerWidth, window.innerHeight );
+
+	}
+
+	onDocumentMouseMove( event ) {
+
+		this.mouseX = ( event.clientX - this.windowHalfX ) / 2;
+		this.mouseY = ( event.clientY - this.windowHalfY ) / 2;
+
+	}
+
+	render() {
+
+		this.loopId = requestAnimationFrame( () => {
+			this.render();
+		});
+
+		this.camera.lookAt( this.scene.position );
+
+		if ( this.mesh ) {
+
+			// WebGLRendererではなくMMDHelper
+			this.helper.animate( this.clock.getDelta() );
+			this.helper.render( this.scene, this.camera );
+
+		}
+
+		this.count += 0.5;
+
+		const radius = 30;
+		const c1 = Math.tan(this.count) * radius + 10;
+		const c2 = Math.tan(this.count + 1) * radius + 10;
+		const c3 = Math.tan(this.count + 2) * radius + 10;
+		const c4 = Math.tan(this.count + 3) * radius + 10;
+		this.pointLight.position.y = this.pHelper.position.y = c1;
+		this.pointLight2.position.y = this.pHelper2.position.y = c2;
+		this.pointLight3.position.y = this.pHelper3.position.y = c3;
+		this.pointLight4.position.y = this.pHelper4.position.y = c4;
+	}
+
+	stop() {
+
+		cancelAnimationFrame( this.loopId );
+
+	}
+
+
+
+}
+
+(() => {
+
+	const miku = new Miku();
+
+
+})();
+
+
+
+
+
+
+
+</script>
+</body>
+</html>
