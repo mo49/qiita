@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>canvas carousel</title>
+<style>
+.fv__canvas {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translate(-50%, 0);
+  max-width: 640px;
+  width: 100%;
+  height: 100%;
+}
+.fv__canvas canvas {
+  position: absolute;
+}
+.fv__canvas .fv__canvas--top {
+  width: 100%;
+  top: 0;
+  height: 650px;
+}
+.fv__canvas .fv__canvas--left {
+  width: 50%;
+  left: 0;
+  height: 562px;
+  top: 367px;
+}
+.fv__canvas .fv__canvas--right {
+  width: 50%;
+  right: 0;
+  height: 562px;
+  top: 367px;
+}
+.fv__canvas .fv__canvas--bottom {
+  width: 100%;
+  right: 0;
+  height: 330px;
+  top: 648px;
+}
+
+
+
+</style>
+</head>
+<body>
+
+<div class="fv__canvas">
+  <canvas class="fv__canvas--top"></canvas>
+  <canvas class="fv__canvas--left"></canvas>
+  <canvas class="fv__canvas--right"></canvas>
+  <canvas class="fv__canvas--bottom"></canvas>
+</div>
+
+<script src="../js/jquery-3.2.0.min.js"></script>
+<script type="text/javascript">
+
+class CanvasCarousel {
+
+  constructor(opts={}) {
+    // パラメータ
+    this.DURATION = isNaN(opts.DURATION) ? 3000 : opts.DURATION;
+    this.FADE_DURATION = isNaN(opts.FADE_DURATION) ? 500 : opts.FADE_DURATION;
+    this.INTERVAL = isNaN(opts.INTERVAL) ? 50 : opts.INTERVAL; // loop
+    this.DELAY = isNaN(opts.DELAY) ? 0 : opts.DELAY;
+    this.isSP = opts.isSP || false;
+    this.RATIO = this.isSP ? 2 : 1;
+
+    // canvas
+    this.$canvas = opts.$canvas;
+    this.ctx = this.$canvas.get(0).getContext('2d');
+    // 表示する画像
+    this.SRC = opts.SRC || [];
+    this.images = opts.images || [];
+    // マスク
+    this.MASK_SRC = opts.MASK_SRC || {};
+    this.mask = new Image();
+    this.mask.src = this.isSP ? this.MASK_SRC.sp : this.MASK_SRC.pc;
+    this.maskPosY = opts.maskPosY || 'bottom'; // 上寄せ or 下寄せ
+
+    this.init();
+  }
+
+  init() {
+    if (!this.$canvas.length) {
+      return;
+    }
+    this.load();
+  }
+
+  load() {
+    // load image
+    let loadingCount = 0;
+    $.each(this.SRC, (index, src) => {
+      loadingCount++;
+      const img = new Image();
+      $(img).on('load', () => {
+        this.images[index] = img;
+        loadingCount--;
+        if (!loadingCount) {
+          setTimeout(() => this.startLoop(), this.DELAY)
+        }
+      });
+      img.src = src;
+    });
+  }
+
+  draw (img, elWidth, elHeight) {
+    const imgWidth = img.width;
+    const imgHeight = img.height;
+
+    let width, height;
+    let x = 0, y = 0;
+    // 全画面表示
+    if (imgWidth / imgHeight > elWidth / elHeight) {
+      height = elHeight;
+      width = imgWidth * elHeight / imgHeight;
+      x = (elWidth - width) / 2;
+    } else {
+      width = elWidth;
+      height = imgHeight * elWidth / imgWidth;
+      y = (elHeight - height) / 2;
+    }
+
+    this.ctx.drawImage(img, x, y, width, height);
+  }
+
+  startLoop() {
+    this.startTime = Date.now();
+    this.loop();
+  }
+
+  loop() {
+    const now = Date.now();
+    while (now - this.startTime > this.DURATION) {
+      this.startTime += this.DURATION;
+      this.images.push(this.images.shift()); // 先頭を最後尾に移動
+    }
+    const time = now - this.startTime;
+
+    const elWidth = this.$canvas.width() * this.RATIO;
+    const elHeight = this.$canvas.height() * this.RATIO;
+
+    this.$canvas.attr({
+      width: elWidth,
+      height: elHeight
+    });
+
+    this.draw(this.images[0], elWidth, elHeight);
+
+    // 次の画像を上に重ねる
+    if (time > this.DURATION - this.FADE_DURATION) {
+      let fade = (time - (this.DURATION - this.FADE_DURATION)) / this.FADE_DURATION;
+      this.ctx.save();
+      this.ctx.globalAlpha = fade;
+      this.draw(this.images[1], elWidth, elHeight);
+      this.ctx.restore();
+    }
+
+    if (this.mask.width && this.mask.height) {
+      const diff = 2; // 白い線が出ていたので対策
+      const maskHeight = this.mask.height * (elWidth / this.mask.width);
+      const posY = (this.maskPosY === 'top') ? 0 : elHeight - maskHeight ;
+      this.ctx.save();
+      // マスクがかかった部分を消す
+      this.ctx.globalCompositeOperation = 'destination-out';
+      this.ctx.drawImage(this.mask, 0, posY - diff, elWidth, maskHeight);
+      this.ctx.restore();
+    }
+
+    setTimeout(() => {
+      this.loop();
+    }, this.INTERVAL);
+  }
+
+
+}
+
+
+function initCarousel() {
+
+  const isSP = false;
+  const DURATION = 3000;
+
+  new CanvasCarousel({
+    isSP: isSP,
+    $canvas: $('.fv__canvas--top'),
+    SRC: [
+      '../img/img01.jpg',
+      '../img/img02.jpg',
+      '../img/img03.jpg',
+      '../img/img04.jpg',
+      '../img/img05.jpg'
+    ],
+    MASK_SRC: {
+      sp: '../img/mask_top.png',
+      pc: '../img/mask_top.png'
+    },
+  })
+
+  new CanvasCarousel({
+    isSP: isSP,
+    $canvas: $('.fv__canvas--left'),
+    SRC: [
+      '../img/img02.jpg',
+      '../img/img03.jpg',
+      '../img/img04.jpg',
+      '../img/img05.jpg',
+      '../img/img01.jpg'
+    ],
+    MASK_SRC: {
+      sp: '../img/mask_left.png',
+      pc: '../img/mask_left.png'
+    },
+    DELAY: DURATION/2,
+  })
+
+  new CanvasCarousel({
+    isSP: isSP,
+    $canvas: $('.fv__canvas--right'),
+    SRC: [
+      '../img/img03.jpg',
+      '../img/img04.jpg',
+      '../img/img05.jpg',
+      '../img/img01.jpg',
+      '../img/img02.jpg'
+    ],
+    MASK_SRC: {
+      sp: '../img/mask_right.png',
+      pc: '../img/mask_right.png'
+    },
+    DELAY: DURATION/4,
+  })
+
+  new CanvasCarousel({
+    isSP: isSP,
+    $canvas: $('.fv__canvas--bottom'),
+    SRC: [
+      '../img/img04.jpg',
+      '../img/img05.jpg',
+      '../img/img01.jpg',
+      '../img/img02.jpg',
+      '../img/img03.jpg'
+    ],
+    MASK_SRC: {
+      sp: '../img/mask_bottom.png',
+      pc: '../img/mask_bottom.png'
+    },
+    DELAY: DURATION/3,
+    maskPosY: 'top',
+  })
+
+}
+
+initCarousel();
+
+</script>
+</body>
+</html>
