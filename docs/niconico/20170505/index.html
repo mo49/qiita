@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+<title>Video texture</title>
+<script type="text/javascript" src="./libs/literally/jquery-1.8.2.js"></script>
+<script type="text/javascript" src="./js/libs/three.min.js"></script>
+<script type="text/javascript" src="./js/libs/OrbitControls.js"></script>
+<script type="text/javascript" src="./js/libs/dat.gui.js"></script>
+<script type="text/javascript" src="./js/libs/createjs-2015.11.26.min.js"></script>
+<script type="text/javascript" src="./js/particle.js"></script>
+<style>
+
+body {
+/* set margin to 0 and overflow to hidden, to go fullscreen */
+margin: 0;
+width: 100%; height: 100%;
+overflow: hidden;
+}
+body{
+/*background-image: url('./img/bg1.jpg');
+-webkit-background-size: cover;
+background-size: cover;*/
+}
+#bg{
+position: fixed;
+top: 0; left: 0;
+width: 100%; height: 100%;
+background-image: url('./img/bg1.jpg');
+-webkit-background-size: cover;
+background-size: cover;
+}
+#bg .bg-in{
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-image: url('./img/bg2.jpg');
+  -webkit-background-size: cover;
+  background-size: cover;
+  opacity: 0;
+  transition: opacity 1000ms;
+}
+#bg.sunset .bg-in{
+  opacity: 1;
+  transition: opacity 1000ms;
+}
+#WebGL-output{
+position: relative;
+width: 100%; height: 100%;
+z-index: 90;
+}
+#myCanvas{
+position: fixed;
+top: 0; left: 0;
+width: 100%; height: 100%;
+z-index: 100;
+}
+
+</style>
+</head>
+<body>
+
+<div id="bg">
+  <div class="bg-in"></div>
+</div>
+
+<div id="Stats-output">
+</div>
+
+<video id="video" style="display: none; position: absolute; left: 15px; top: 75px;"
+       src="movie/sample.mp4" controls="true" autoplay="true" loop="true"></video>
+
+<!-- Div which will hold the Output -->
+<div id="WebGL-output">
+</div>
+
+<canvas id="myCanvas"></canvas>
+
+
+<!-- Javascript code that runs our Three.js examples -->
+<script type="text/javascript">
+
+var texture;
+
+function init() {
+
+  var flag = 0;
+  window.addEventListener('keydown', function(e) {
+    console.log(e.keyCode);
+    if (e.keyCode == 32) {
+      $('#bg').addClass('sunset');
+      if (flag) {
+        $('#bg').removeClass('sunset');
+      }
+      flag ^= 1;
+    }
+  })
+
+  {
+    this.scene = new THREE.Scene();
+  }
+  {
+    this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+  }
+  { // controls
+    this.clock = new THREE.Clock();
+    this.controls = new THREE.OrbitControls(this.camera);
+    this.controls.autoRotate = true;
+  }
+
+  const webGLRenderer = new THREE.WebGLRenderer({alpha:true});
+  // webGLRenderer.setClearColor(new THREE.Color(0xEEEEEE));
+  webGLRenderer.setSize(window.innerWidth, window.innerHeight);
+  webGLRenderer.shadowMap.enabled = true;
+
+  const video = document.getElementById('video');
+  texture = new THREE.VideoTexture(video);
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.generateMipmaps = false; // 動画は正方形ではないので無効にする
+
+  const cube = createMesh(new THREE.BoxGeometry(32, 18, 0.5));
+  cube.position.y = 2;
+  this.scene.add(cube);
+
+  this.camera.position.set(10,-5,25);
+  this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+  const ambiLight = new THREE.AmbientLight(0x141414);
+  this.scene.add(ambiLight);
+
+  document.getElementById("WebGL-output").appendChild(webGLRenderer.domElement);
+
+  let step = 0;
+
+  render();
+
+  function createMesh(geom) {
+
+    let materialArray = [];
+    materialArray.push(new THREE.MeshBasicMaterial({color: 0x0051ba}));
+    materialArray.push(new THREE.MeshBasicMaterial({color: 0x0051ba}));
+    materialArray.push(new THREE.MeshBasicMaterial({color: 0x0051ba}));
+    materialArray.push(new THREE.MeshBasicMaterial({color: 0x0051ba}));
+    materialArray.push(new THREE.MeshBasicMaterial({map: texture}));
+    materialArray.push(new THREE.MeshBasicMaterial({map: texture}));
+    // materialArray.push(new THREE.MeshBasicMaterial({color: 0xff51ba}));
+    var faceMaterial = new THREE.MultiMaterial(materialArray);
+
+    var mesh = new THREE.Mesh(geom, faceMaterial);
+
+    return mesh;
+  }
+
+  function render() {
+      requestAnimationFrame(render);
+      webGLRenderer.render(this.scene, this.camera);
+
+      let delta = this.clock.getDelta();
+      this.controls.update(delta);
+  }
+
+  particle();
+
+}
+window.onload = init;
+</script>
+
+</body>
+</html>
