@@ -1,0 +1,41 @@
+// reset css
+@import 'node_modules/reset.css/reset.css';
+
+// config
+@import 'variable', 'function', 'mixin', 'keyframes';
+
+// modules
+@import 'module/*';
+
+
+html, body {
+padding: 0;margin: 0;
+width: 100%;height: 100%;
+/*background: #000;*/
+overflow: hidden;
+}
+body{
+/*background-image: url("./img/bg.png");*/
+background-size: cover;
+}
+#library {
+display: none;
+}
+canvas {
+-webkit-transform: translateZ(0);
+}
+#beach{
+background-image: url("../img/sea.png");
+width: 100%; height: 380px;
+position: fixed;
+bottom: -30px; left: 0;
+opacity: .9;
+}
+#sample{
+display: none;
+background-image: url("../img/bg.png");
+background-size: cover;
+width: 100%; height: 100%;
+position: fixed;
+top: 0; left: 0;
+}
