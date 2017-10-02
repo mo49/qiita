@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+  <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    #app {
+      width: 100%;
+      height: 100%;
+    }
+    .scenes{
+      position: fixed;
+      top: 0; right: 0;
+      color: #333;
+    }
+    .scenes span{
+      background-color: #eee;
+      padding: 10px;
+      cursor: pointer;
+    }
+    .controller{
+      position: fixed;
+      top: 0; left: 0;
+      color: #333;
+    }
+    .controller span{
+      background-color: #eee;
+      padding: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script src="./js/lib/three.min.js"></script>
+  <script src="./js/lib/loader/draco_decoder.js"></script>
+  <script src="./js/lib/loader/DRACOLoader.js"></script>
+  <script src="./js/sample.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded',() => {
+      var app = new App();
+    })
+  </script>
+</body>
+</html>
